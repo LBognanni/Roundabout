@@ -1,0 +1,17 @@
+.cr
+bin
+obj
+packages
+.vs
+*.user
+*.suo
+*.DotSettings
+publish
+launchSettings.json
+.tmp
+Output
+/src/CodeMade.Clock/CodeMade.Clock.xml
+/src/CodeMade.ScriptedGraphics/CodeMade.ScriptedGraphics.xml
+ignored
+TestResult.xml
+.nuke/temp
