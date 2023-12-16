@@ -4,6 +4,8 @@ namespace Roundabout
 {
     public partial class frmApp : Form
     {
+        private bool showingChildForm = false;
+
         public frmApp(string url)
         {
             InitializeComponent();
@@ -37,7 +39,7 @@ namespace Roundabout
                     this.Close();
                 }
             };
-            
+
             this.ResumeLayout();
 
             Program.Log("Main form ready.");
@@ -55,8 +57,11 @@ namespace Roundabout
         protected override void OnDeactivate(EventArgs e)
         {
             base.OnDeactivate(e);
-            Program.Log("closing.");
-            this.Close();
+            if (!showingChildForm)
+            {
+                Program.Log("closing.");
+                this.Close();
+            }
         }
 
         private string AddNewlines(string name)
@@ -92,6 +97,13 @@ namespace Roundabout
                     out _);
             }
         }
+        private void aboutRoundaboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frmAbout about = new frmAbout();
+            showingChildForm = true;
+            about.ShowDialog();
+            showingChildForm = false;
+        }
 
 
 
@@ -107,6 +119,11 @@ namespace Roundabout
     string lpCurrentDirectory,
     ref STARTUPINFO lpStartupInfo,
     out PROCESS_INFORMATION lpProcessInformation);
+
+        private void llMenu_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            cmsMenu.Show(this.llMenu, new Point(0, this.llMenu.Height / 2));
+        }
 
         public struct PROCESS_INFORMATION
         {

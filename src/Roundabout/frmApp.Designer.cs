@@ -28,12 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmApp));
             flpButtons = new FlowLayoutPanel();
             tlpBottom = new TableLayoutPanel();
             llMenu = new LinkLabel();
             txtUrl = new TextBox();
+            cmsMenu = new ContextMenuStrip(components);
+            aboutRoundaboutToolStripMenuItem = new ToolStripMenuItem();
             tlpBottom.SuspendLayout();
+            cmsMenu.SuspendLayout();
             SuspendLayout();
             // 
             // flpButtons
@@ -74,6 +78,7 @@
             llMenu.TabIndex = 0;
             llMenu.TabStop = true;
             llMenu.Text = "";
+            llMenu.LinkClicked += llMenu_LinkClicked;
             // 
             // txtUrl
             // 
@@ -82,6 +87,19 @@
             txtUrl.Name = "txtUrl";
             txtUrl.Size = new Size(367, 23);
             txtUrl.TabIndex = 1;
+            // 
+            // cmsMenu
+            // 
+            cmsMenu.Items.AddRange(new ToolStripItem[] { aboutRoundaboutToolStripMenuItem });
+            cmsMenu.Name = "cmsMenu";
+            cmsMenu.Size = new Size(186, 26);
+            // 
+            // aboutRoundaboutToolStripMenuItem
+            // 
+            aboutRoundaboutToolStripMenuItem.Name = "aboutRoundaboutToolStripMenuItem";
+            aboutRoundaboutToolStripMenuItem.Size = new Size(185, 22);
+            aboutRoundaboutToolStripMenuItem.Text = "About Roundabout...";
+            aboutRoundaboutToolStripMenuItem.Click += aboutRoundaboutToolStripMenuItem_Click;
             // 
             // frmApp
             // 
@@ -100,6 +118,7 @@
             Text = "Open {0} in...";
             tlpBottom.ResumeLayout(false);
             tlpBottom.PerformLayout();
+            cmsMenu.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -110,5 +129,7 @@
         private TableLayoutPanel tlpBottom;
         private LinkLabel llMenu;
         private TextBox txtUrl;
+        private ContextMenuStrip cmsMenu;
+        private ToolStripMenuItem aboutRoundaboutToolStripMenuItem;
     }
 }
