@@ -3,7 +3,7 @@ name: Build release
 on: 
   push:
     branches:
-      - master
+      - main
 
 
 jobs:
@@ -24,6 +24,9 @@ jobs:
   build:
     runs-on: windows-latest
     needs: tag
+    permissions:
+      contents: write 
+      
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -32,7 +35,7 @@ jobs:
 
     # Install the .NET workload
     - name: Install .NET
-      uses: actions/setup-dotnet@latest
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.x
 

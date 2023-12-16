@@ -48,5 +48,5 @@ Filename: "{app}\{#AppExeName}"; Parameters: "--register"
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
-Filename: "{app}\{#AppExeName}"; Parameters: "--unregister"
+Filename: "{app}\{#AppExeName}"; Parameters: "--unregister"; RunOnceId: "{#AppExeName}Unregister"
 
