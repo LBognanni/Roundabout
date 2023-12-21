@@ -1,37 +1,41 @@
+using ReactiveUI;
+using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
 
 namespace Roundabout
 {
-    public partial class frmApp : Form
+    public partial class frmApp : Form, IViewFor<frmAppViewModel>
     {
         private bool showingChildForm = false;
 
-        public frmApp(string url)
+        public frmAppViewModel? ViewModel { get; set; }
+        object? IViewFor.ViewModel { get => this.ViewModel; set => ViewModel = value as frmAppViewModel; }
+
+        public frmApp(frmAppViewModel model)
         {
             InitializeComponent();
 
             this.SuspendLayout();
 
-
-            var browsers = BrowsersFinder.FindBrowsers();
-            this.txtUrl.Text = url;
-            this.Text = string.Format(this.Text, url);
-            foreach (var browser in browsers)
+            ViewModel = model;
+            this.WhenActivated(disposable =>
             {
-                var button = new Button();
-                button.Text = AddNewlines(browser.Name);
-                button.Image = browser.GetImage();
-                button.Size = new Size(120, 120);
-                button.ImageAlign = ContentAlignment.MiddleCenter;
-                button.TextAlign = ContentAlignment.BottomCenter;
-                button.AutoSizeMode = AutoSizeMode.GrowOnly;
-                button.AutoSize = true;
-                button.Tag = browser.Command;
-                button.FlatStyle = FlatStyle.Flat;
-                button.Cursor = Cursors.Hand;
-                button.Click += Button_Click;
-                this.flpButtons.Controls.Add(button);
-            }
+                this.Bind(ViewModel,
+                    vm => vm.Url,
+                    f => f.txtUrl.Text,
+                    txtUrl.Events().TextChanged
+                ).DisposeWith(disposable);
+
+                this.OneWayBind(ViewModel, vm => vm.Url, f => f.Text)
+                    .DisposeWith(disposable);
+
+                this.OneWayBind(ViewModel,
+                    vm => vm.Browsers,
+                    frm => frm.flpButtons.Controls,
+                    vmToViewConverterOverride: new BrowserListConverter(ViewModel)
+                ).DisposeWith(disposable);
+            });
+
             this.txtUrl.KeyDown += (s, e) =>
             {
                 if (e.KeyCode == Keys.Escape)
@@ -76,27 +80,6 @@ namespace Roundabout
             return name;
         }
 
-        private void Button_Click(object? sender, EventArgs e)
-        {
-            var button = sender as Button;
-            var command = button?.Tag?.ToString();
-            if (!string.IsNullOrEmpty(command))
-            {
-                var si = new STARTUPINFO();
-                var _ = new PROCESS_INFORMATION();
-                CreateProcess(
-                    null!,
-                    command.Replace("%1", this.txtUrl.Text),
-                    IntPtr.Zero,
-                    IntPtr.Zero,
-                    false,
-                    0,
-                    IntPtr.Zero,
-                    null!,
-                    ref si,
-                    out _);
-            }
-        }
         private void aboutRoundaboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             frmAbout about = new frmAbout();
@@ -105,54 +88,10 @@ namespace Roundabout
             showingChildForm = false;
         }
 
-
-
-        [DllImport("kernel32.dll")]
-        static extern bool CreateProcess(
-    string lpApplicationName,
-    string lpCommandLine,
-    IntPtr lpProcessAttributes,
-    IntPtr lpThreadAttributes,
-    bool bInheritHandles,
-    uint dwCreationFlags,
-    IntPtr lpEnvironment,
-    string lpCurrentDirectory,
-    ref STARTUPINFO lpStartupInfo,
-    out PROCESS_INFORMATION lpProcessInformation);
-
         private void llMenu_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             cmsMenu.Show(this.llMenu, new Point(0, this.llMenu.Height / 2));
         }
 
-        public struct PROCESS_INFORMATION
-        {
-            public IntPtr hProcess;
-            public IntPtr hThread;
-            public uint dwProcessId;
-            public uint dwThreadId;
-        }
-
-        public struct STARTUPINFO
-        {
-            public uint cb;
-            public string lpReserved;
-            public string lpDesktop;
-            public string lpTitle;
-            public uint dwX;
-            public uint dwY;
-            public uint dwXSize;
-            public uint dwYSize;
-            public uint dwXCountChars;
-            public uint dwYCountChars;
-            public uint dwFillAttribute;
-            public uint dwFlags;
-            public short wShowWindow;
-            public short cbReserved2;
-            public IntPtr lpReserved2;
-            public IntPtr hStdInput;
-            public IntPtr hStdOutput;
-            public IntPtr hStdError;
-        }
     }
 }

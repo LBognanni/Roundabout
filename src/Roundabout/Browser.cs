@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Roundabout
 {
-    internal record Browser (string Name, string Command, string Icon)
+    public record Browser (string Name, string Command, string Icon)
     {
         public Image? GetImage()
         {

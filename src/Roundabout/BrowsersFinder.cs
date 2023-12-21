@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Roundabout
 {
-    internal class BrowsersFinder
+    internal class BrowsersFinder : IBrowsersFinder
     {
-        public static IEnumerable<Browser> FindBrowsers() => 
+        public IEnumerable<Browser> FindBrowsers() =>
             FindBrowsers(Microsoft.Win32.Registry.CurrentUser)
             .Union(
                 FindBrowsers(Microsoft.Win32.Registry.LocalMachine)
@@ -45,7 +45,7 @@ namespace Roundabout
                 if (icon == null)
                     continue;   // this excludes IE and an extra Edge
 
-                if(friendlyName == ProtocolHandling.AppName)
+                if (friendlyName == ProtocolHandling.AppName)
                     continue;   // this excludes Roundabout itself
 
                 yield return new Browser(friendlyName, command, icon);

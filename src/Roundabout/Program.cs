@@ -48,7 +48,10 @@ namespace Roundabout
 
 
                 Log("Starting application");
-                var mainForm = new frmApp(url);
+
+                var model = new frmAppViewModel(url, "", new BrowsersFinder(), new Settings(), new WindowsInterop());
+
+                var mainForm = new frmApp(model);
                 Log("Showing form");
                 Application.ThreadException += (s, e) => Log(e.Exception.ToString());
                 Application.Run(mainForm);
