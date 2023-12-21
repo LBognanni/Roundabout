@@ -1,6 +1,5 @@
-﻿namespace Roundabout
+﻿namespace Roundabout;
+
+internal class Settings : ISettings
 {
-    internal class Settings : ISettings
-    {
-    }
 }

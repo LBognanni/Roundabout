@@ -1,8 +1,7 @@
 ﻿
-namespace Roundabout
+namespace Roundabout;
+
+public interface IBrowsersFinder
 {
-    public interface IBrowsersFinder
-    {
-        IEnumerable<Browser> FindBrowsers();
-    }
+    IEnumerable<Browser> FindBrowsers();
 }

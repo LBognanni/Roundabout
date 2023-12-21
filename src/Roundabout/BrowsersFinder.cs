@@ -1,55 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Roundabout;
 
-namespace Roundabout
+internal class BrowsersFinder : IBrowsersFinder
 {
-    internal class BrowsersFinder : IBrowsersFinder
+    public IEnumerable<Browser> FindBrowsers() =>
+        FindBrowsers(Microsoft.Win32.Registry.CurrentUser)
+        .Union(
+            FindBrowsers(Microsoft.Win32.Registry.LocalMachine)
+        );
+
+    private static IEnumerable<Browser> FindBrowsers(Microsoft.Win32.RegistryKey rk)
     {
-        public IEnumerable<Browser> FindBrowsers() =>
-            FindBrowsers(Microsoft.Win32.Registry.CurrentUser)
-            .Union(
-                FindBrowsers(Microsoft.Win32.Registry.LocalMachine)
-            );
+        Program.Log("Finding browsers in " + rk.Name);
 
-        private static IEnumerable<Browser> FindBrowsers(Microsoft.Win32.RegistryKey rk)
+        var hkcu_registeredapps = rk.OpenSubKey("SOFTWARE\\RegisteredApplications");
+        if (hkcu_registeredapps == null)
+            yield break;
+
+        var keys = hkcu_registeredapps.GetValueNames();
+        foreach (var key in keys)
         {
-            Program.Log("Finding browsers in " + rk.Name);
+            var appId = hkcu_registeredapps.GetValue(key)?.ToString();
+            var urls = rk.OpenSubKey(appId + "\\URLAssociations\\");
+            if (urls == null)
+                continue;
 
-            var hkcu_registeredapps = rk.OpenSubKey("SOFTWARE\\RegisteredApplications");
-            if (hkcu_registeredapps == null)
-                yield break;
+            var classes = urls.GetValue("https");
+            if (classes == null)
+                continue;
 
-            var keys = hkcu_registeredapps.GetValueNames();
-            foreach (var key in keys)
-            {
-                var appId = hkcu_registeredapps.GetValue(key)?.ToString();
-                var urls = rk.OpenSubKey(appId + "\\URLAssociations\\");
-                if (urls == null)
-                    continue;
+            var command = rk.OpenSubKey($"Software\\Classes\\{classes}\\shell\\open\\command")?.GetValue(null)?.ToString();
+            if (command == null)
+                continue;
 
-                var classes = urls.GetValue("https");
-                if (classes == null)
-                    continue;
+            var appKey = rk.OpenSubKey(appId);
+            var friendlyName = appKey.GetValue("ApplicationName")?.ToString() ?? "Unknown Browser";
+            var icon = appKey?.GetValue("ApplicationIcon")?.ToString();
 
-                var command = rk.OpenSubKey($"Software\\Classes\\{classes}\\shell\\open\\command")?.GetValue(null)?.ToString();
-                if (command == null)
-                    continue;
+            if (icon == null)
+                continue;   // this excludes IE and an extra Edge
 
-                var appKey = rk.OpenSubKey(appId);
-                var friendlyName = appKey.GetValue("ApplicationName")?.ToString() ?? "Unknown Browser";
-                var icon = appKey?.GetValue("ApplicationIcon")?.ToString();
+            if (friendlyName == ProtocolHandling.AppName)
+                continue;   // this excludes Roundabout itself
 
-                if (icon == null)
-                    continue;   // this excludes IE and an extra Edge
-
-                if (friendlyName == ProtocolHandling.AppName)
-                    continue;   // this excludes Roundabout itself
-
-                yield return new Browser(friendlyName, command, icon);
-            }
+            yield return new Browser(friendlyName, command, icon);
         }
     }
 }

@@ -1,54 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿namespace Roundabout;
 
-namespace Roundabout
+public partial class frmAbout : Form
 {
-    public partial class frmAbout : Form
+    public frmAbout()
     {
-        public frmAbout()
-        {
-            InitializeComponent();
-            this.lblCurrentVersion.Text = string.Format(this.lblCurrentVersion.Text, 
-                Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString());
-        }
+        InitializeComponent();
+        this.lblCurrentVersion.Text = string.Format(this.lblCurrentVersion.Text, 
+            Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString());
+    }
 
-        private void cmdClose_Click(object sender, EventArgs e)
+    private void cmdClose_Click(object sender, EventArgs e)
+    {
+        this.Close();
+    }
+    private void OpenLink(object sender, EventArgs e)
+    {
+        if (sender is Control ctl)
         {
-            this.Close();
-        }
-        private void OpenLink(object sender, EventArgs e)
-        {
-            if (sender is Control ctl)
+            var url = ctl.Tag?.ToString();
+            if (!string.IsNullOrWhiteSpace(url))
             {
-                string url = ctl.Tag?.ToString();
-                if (!string.IsNullOrWhiteSpace(url))
+                try
                 {
-                    try
-                    {
-                        ProcessStartInfo psi = new ProcessStartInfo(url);
-                        psi.UseShellExecute = true;
-                        System.Diagnostics.Process.Start(psi);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error opening link: {ex.Message}.\r\n Visit {url}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    ProcessStartInfo psi = new ProcessStartInfo(url);
+                    psi.UseShellExecute = true;
+                    System.Diagnostics.Process.Start(psi);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error opening link: {ex.Message}.\r\n Visit {url}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
+    }
 
-        private void OpenLinkLabelLink(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            OpenLink(sender, EventArgs.Empty);
-        }
+    private void OpenLinkLabelLink(object sender, LinkLabelLinkClickedEventArgs e)
+    {
+        OpenLink(sender, EventArgs.Empty);
     }
 }

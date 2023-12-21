@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Roundabout;
 
-namespace Roundabout
+public record Browser (string Name, string Command, string Icon)
 {
-    public record Browser (string Name, string Command, string Icon)
+    public Image? GetImage()
     {
-        public Image? GetImage()
-        {
-            var icon = ExtractIcon.FromExecutable(Icon);
-            return icon?.ToBitmap();
-        }
+        var icon = ExtractIcon.FromExecutable(Icon);
+        return icon?.ToBitmap();
     }
 }

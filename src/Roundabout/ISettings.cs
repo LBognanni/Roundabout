@@ -1,6 +1,5 @@
-﻿namespace Roundabout
+﻿namespace Roundabout;
+
+public interface ISettings
 {
-    public interface ISettings
-    {
-    }
 }
