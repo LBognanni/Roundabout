@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
 namespace Roundabout;
 
 internal static class Program
@@ -41,18 +44,17 @@ internal static class Program
         ApplicationConfiguration.Initialize();
         try
         {
-            CreateSacrificalForm();
+            var parent = GetParentAndCreateSacrificalForm();
 
 
             Log("Starting application");
 
-            var model = new frmAppViewModel(url, "", new BrowsersFinder(), new Settings(), new WindowsInterop());
+            var model = new frmAppViewModel(url, parent, new BrowsersFinder(), new Settings(), new WindowsInterop());
 
             var mainForm = new frmApp(model);
             Log("Showing form");
             Application.ThreadException += (s, e) => Log(e.Exception.ToString());
             Application.Run(mainForm);
-            //mainForm.ShowDialog();
         }
         catch (Exception ex)
         {
@@ -69,21 +71,37 @@ internal static class Program
     /// Slack "Swallows" Roundabout when first launched.
     /// This hack creates a sacrifical form to be swallowed instead.
     /// </summary>
-    private static void CreateSacrificalForm()
+    private static string GetParentAndCreateSacrificalForm()
+    {
+        var parent = GetParentWindow();
+        var hungryApps = new string[] { "Slack" };
+
+        if (hungryApps.Contains(parent, StringComparer.OrdinalIgnoreCase))
+        {
+            CreateSacrificalForm();
+        }
+
+        return parent;
+    }
+
+    public static void CreateSacrificalForm()
+    {
+        Form form = new Form();
+        form.Show();
+        form.Close();
+    }
+
+    private static string GetParentWindow()
     {
         var pos = Cursor.Position;
         var hwnd = WindowFromPoint(pos);
-        if(hwnd == IntPtr.Zero)
-            return;
+        if (hwnd == IntPtr.Zero)
+            return "";
+
         GetWindowThreadProcessId(hwnd, out uint pid);
         var parent = Process.GetProcessById((int)pid).ProcessName;
+        
         Log($"Parent process: {parent}");
-
-        if (parent.Equals("Slack", StringComparison.OrdinalIgnoreCase))
-        {
-            Form form = new Form();
-            form.Show();
-            form.Close();
-        }
+        return parent;
     }
 }
