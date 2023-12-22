@@ -3,17 +3,19 @@ namespace Roundabout;
 public partial class frmApp : Form, IViewFor<frmAppViewModel>
 {
     private bool showingChildForm = false;
+    private readonly ILogger _logger;
 
     public frmAppViewModel? ViewModel { get; set; }
     object? IViewFor.ViewModel { get => this.ViewModel; set => ViewModel = value as frmAppViewModel; }
 
-    public frmApp(frmAppViewModel model)
+    public frmApp(frmAppViewModel model, ILogger logger)
     {
         InitializeComponent();
 
         this.SuspendLayout();
 
         ViewModel = model;
+        _logger = logger;
         this.WhenActivated(disposable =>
         {
             this.Bind(ViewModel,
@@ -42,12 +44,12 @@ public partial class frmApp : Form, IViewFor<frmAppViewModel>
 
         this.ResumeLayout();
 
-        Program.Log("Main form ready.");
+        _logger.Debug("Main form ready.");
     }
 
     override protected void OnActivated(EventArgs e)
     {
-        Program.Log("Main form active.");
+        _logger.Debug("Main form active.");
         base.OnActivated(e);
         this.txtUrl.SelectAll();
         this.txtUrl.Focus();
@@ -59,7 +61,7 @@ public partial class frmApp : Form, IViewFor<frmAppViewModel>
         base.OnDeactivate(e);
         if (!showingChildForm)
         {
-            Program.Log("closing.");
+            _logger.Debug("closing.");
             this.Close();
         }
     }

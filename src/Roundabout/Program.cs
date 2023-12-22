@@ -1,34 +1,32 @@
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-
 namespace Roundabout;
 
 internal static class Program
 {
-    public static void Log(params string[] message)
-    {
-        File.AppendAllLines(Path.Combine(Path.GetTempPath(), "Roundabout_log.txt"), message);
-    }
-
     /// <summary>
     ///  The main entry point for the application.
     /// </summary>
     [STAThread]
     static void Main(string[] args)
     {
-        Log("", "---");
-        Log(DateTime.Now.ToString());
-        Log(args);
+        using var log = new LoggerConfiguration()
+            .WriteTo.File(
+                Path.Combine(Path.GetTempPath(), "Roundabout_log.txt"), 
+                retainedFileCountLimit: 1, 
+                fileSizeLimitBytes: 1024*1024, // 1mb
+                rollOnFileSizeLimit: true)
+            .CreateLogger();
+
+        log.Information("Args: " + String.Join(" ", args));
 
         if(args.Length > 0 && args[0] == "--register")
         {
-            Log("Registering protocol handler");
+            log.Information("Registering protocol handler");
             ProtocolHandling.Register();
             return;
         }
         if (args.Length > 0 && args[0] == "--unregister")
         {
-            Log("Unregistering protocol handler");
+            log.Information("Unregistering protocol handler");
             ProtocolHandling.UnRegister();
             return;
         }
@@ -37,33 +35,33 @@ internal static class Program
         {
             url = args[0];
         }
-        Log("URL: " + url);
+        log.Information("URL: " + url);
 
         // To customize application configuration such as set high DPI settings or default font,
         // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
         try
         {
-            var parent = GetParentAndCreateSacrificalForm();
+            var parent = GetParentAndCreateSacrificalForm(log);
 
 
-            Log("Starting application");
+            log.Debug("Starting application");
 
-            var model = new frmAppViewModel(url, parent, new BrowsersFinder(), new Settings(), new WindowsInterop());
+            var model = new frmAppViewModel(url, parent, new BrowsersFinder(log), new Settings(), new WindowsInterop());
 
-            var mainForm = new frmApp(model);
-            Log("Showing form");
-            Application.ThreadException += (s, e) => Log(e.Exception.ToString());
+            var mainForm = new frmApp(model, log);
+            log.Debug("Showing form");
+            Application.ThreadException += (s, e) => log.Error(e.Exception.ToString());
             Application.Run(mainForm);
         }
         catch (Exception ex)
         {
-            Log(ex.ToString());
+            log.Error(ex.ToString());
         }
     }
     
     [DllImport("user32.dll")]
-    static extern IntPtr WindowFromPoint(System.Drawing.Point p);
+    static extern IntPtr WindowFromPoint(Point p);
     [DllImport("user32.dll", SetLastError = true)]
     static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
@@ -71,9 +69,9 @@ internal static class Program
     /// Slack "Swallows" Roundabout when first launched.
     /// This hack creates a sacrifical form to be swallowed instead.
     /// </summary>
-    private static string GetParentAndCreateSacrificalForm()
+    private static string GetParentAndCreateSacrificalForm(ILogger logger)
     {
-        var parent = GetParentWindow();
+        var parent = GetParentWindow(logger);
         var hungryApps = new string[] { "Slack" };
 
         if (hungryApps.Contains(parent, StringComparer.OrdinalIgnoreCase))
@@ -91,7 +89,7 @@ internal static class Program
         form.Close();
     }
 
-    private static string GetParentWindow()
+    private static string GetParentWindow(ILogger logger)
     {
         var pos = Cursor.Position;
         var hwnd = WindowFromPoint(pos);
@@ -101,7 +99,7 @@ internal static class Program
         GetWindowThreadProcessId(hwnd, out uint pid);
         var parent = Process.GetProcessById((int)pid).ProcessName;
         
-        Log($"Parent process: {parent}");
+        logger.Information($"Parent process: {parent}");
         return parent;
     }
 }

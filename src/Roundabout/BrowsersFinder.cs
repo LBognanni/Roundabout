@@ -2,15 +2,22 @@
 
 internal class BrowsersFinder : IBrowsersFinder
 {
+    private readonly ILogger _logger;
+
+    public BrowsersFinder(ILogger logger)
+    {
+        _logger = logger;
+    }
+
     public IEnumerable<Browser> FindBrowsers() =>
-        FindBrowsers(Microsoft.Win32.Registry.CurrentUser)
+        FindBrowsers(Microsoft.Win32.Registry.CurrentUser, _logger)
         .Union(
-            FindBrowsers(Microsoft.Win32.Registry.LocalMachine)
+            FindBrowsers(Microsoft.Win32.Registry.LocalMachine, _logger)
         );
 
-    private static IEnumerable<Browser> FindBrowsers(Microsoft.Win32.RegistryKey rk)
+    private static IEnumerable<Browser> FindBrowsers(Microsoft.Win32.RegistryKey rk, ILogger logger)
     {
-        Program.Log("Finding browsers in " + rk.Name);
+        logger.Debug("Finding browsers in " + rk.Name);
 
         var hkcu_registeredapps = rk.OpenSubKey("SOFTWARE\\RegisteredApplications");
         if (hkcu_registeredapps == null)
